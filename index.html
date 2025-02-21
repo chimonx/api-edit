@@ -9,83 +9,37 @@
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: #c2e9fb;
-      font-family: 'Prompt', sans-serif;
-    }
-    .container {
-      max-width: 480px;
-      margin: 50px auto;
-      padding: 20px;
-    }
-    .card-custom {
-      border-radius: 12px;
-      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-      border: none;
-      background: rgba(255, 255, 255, 0.9);
-      padding: 20px;
-    }
-    .btn-custom {
-      width: 100%;
-      font-size: 18px;
-      border-radius: 30px;
-      padding: 10px;
-      transition: transform 0.2s ease, background-color 0.3s ease;
-    }
-    .btn-custom:hover {
-      background-color: #0056b3;
-      transform: scale(1.05);
-    }
-    .form-control {
-      border-radius: 8px;
-    }
-    h2, h5 {
-      font-weight: 600;
-      color: #343a40;
-    }
-    .card-animate {
-      animation: fadeInUp 0.8s;
-    }
-    footer {
-      background-color: #343a40;
-      border-radius: 8px;
-      padding: 15px;
-      margin-top: 30px;
-      text-align: center;
-      color: #fff;
-    }
+    body { font-family: 'Prompt', sans-serif; background: #c2e9fb; }
+    .container { max-width: 480px; margin: 50px auto; padding: 20px; }
+    .card-custom { border-radius: 12px; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); background: rgba(255, 255, 255, 0.9); padding: 20px; }
+    .btn-custom { width: 100%; font-size: 18px; border-radius: 30px; padding: 10px; transition: transform 0.2s ease; }
+    .btn-custom:hover { background-color: #0056b3; transform: scale(1.05); }
+    .form-control { border-radius: 8px; }
+    footer { background-color: #343a40; border-radius: 8px; padding: 15px; text-align: center; color: #fff; margin-top: 30px; }
   </style>
   <script>
-    // เปลี่ยน URL นี้ให้เป็น API URL ที่ถูกต้องของคุณ
-    const API_URL = "https://script.google.com/macros/s/AKfycbwfBQoVwzl3cYEtinn9kMYSrSVePJandUACVJF3lFWoq-WxWOo_K9aDcD1Uwv81iUU/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbwdCEthdZGQVz8qD_gAxGE3G7KXJYTg-zqPyitYtr82bDZ36RJz6CNHwWH0eQSngyDD/exec";
 
     async function searchData() {
-      let inputValue = document.getElementById('inputM').value.trim();
-      if (!inputValue) {
-        Swal.fire('กรุณากรอกรหัสธุรกรรม', '', 'warning');
-        return;
-      }
+      let inputM = document.getElementById('inputM').value.trim();
+      if (!inputM) return Swal.fire('กรุณากรอกรหัสธุรกรรม', '', 'warning');
 
       try {
-        // ส่ง id (จากช่อง M) เป็น query parameter
-        let response = await fetch(`${API_URL}?id=${encodeURIComponent(inputValue)}`);
+        let response = await fetch(`${API_URL}?id=${encodeURIComponent(inputM)}`);
         let data = await response.json();
 
         if (data && data.J) {
           if (data.V === 'สั่งผลิตแล้ว' || data.V === 'รับเสื้อแล้ว') {
-            Swal.fire('แจ้งเตือน', 'ข้อมูลนี้ ' + data.V + ' ไม่สามารถแก้ไขได้', 'warning');
-            return;
+            return Swal.fire('แจ้งเตือน', `ข้อมูลนี้ "${data.V}" ไม่สามารถแก้ไขได้`, 'warning');
           }
+
           document.getElementById('result').innerHTML = `
-            <div class="card card-custom card-animate mt-4">
+            <div class="card card-custom mt-4">
               <h5 class="text-center mb-3">ข้อมูลเสื้อ BU JERSEY</h5>
               <div class="mb-2"><strong>J:</strong> ${data.J}</div>
               <div class="mb-2">
                 <strong>L:</strong>
-                <input type="text" id="editL" class="form-control" value="${data.L}" maxlength="8"
-                       pattern="[A-Za-z]{1,8}" title="กรอกเฉพาะตัวอักษร A-Z ไม่เกิน 8 ตัว" required>
+                <input type="text" id="editL" class="form-control" value="${data.L}" maxlength="8" pattern="[A-Za-z]{1,8}" title="กรอกเฉพาะตัวอักษร A-Z ไม่เกิน 8 ตัว" required>
               </div>
               <div class="mb-2">
                 <strong>D:</strong>
@@ -104,7 +58,6 @@
                 <strong>F:</strong>
                 <input type="text" class="form-control" value="${data.F}" disabled>
               </div>
-              <!-- ส่งค่า M (จาก data.M) เพื่อใช้เป็นตัวระบุในการอัปเดต -->
               <button class="btn btn-primary btn-custom" onclick="updateData('${data.M}')">อัปเดต</button>
             </div>`;
         } else {
@@ -119,7 +72,10 @@
       let D = document.getElementById('editD').value;
       let E = document.getElementById('editE').value.padStart(2, '0');
 
-      // ส่งข้อมูลในรูปแบบ payload โดยใช้ key M, D, E
+      if (!D || !E || isNaN(E) || E < 1 || E > 99) {
+        return Swal.fire('กรุณากรอกข้อมูลให้ถูกต้อง', '', 'warning');
+      }
+
       let payload = { M, D, E };
 
       try {
@@ -129,8 +85,12 @@
           body: JSON.stringify(payload),
         });
 
-        let result = await response.text();
-        Swal.fire(result, '', result.includes('สำเร็จ') ? 'success' : 'warning');
+        let result = await response.json();
+        if (result.success) {
+          Swal.fire('อัปเดตสำเร็จ', '', 'success');
+        } else {
+          Swal.fire(result.error || 'เกิดข้อผิดพลาด', '', 'warning');
+        }
       } catch (error) {
         Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
       }
@@ -140,9 +100,9 @@
 <body>
   <div class="container">
     <div class="text-center mb-4">
-      <h2 class="animate__animated animate__fadeInDown">ระบบแก้ไขข้อมูลเสื้อ BU JERSEY</h2>
+      <h2>ระบบแก้ไขข้อมูลเสื้อ BU JERSEY</h2>
     </div>
-    <div class="card card-custom animate__animated animate__zoomIn">
+    <div class="card card-custom">
       <div class="mb-3">
         <input type="text" id="inputM" class="form-control" placeholder="รหัสธุรกรรม/เลขรายการบนสลิปโอนเงิน">
       </div>
