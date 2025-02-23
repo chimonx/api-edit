@@ -172,6 +172,10 @@
       .then(data => {
         document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
         Swal.fire('อัปเดตข้อมูลสำเร็จ', '', 'success');
+
+        // รีเซ็ตข้อมูล
+        document.getElementById('inputM').value = '';  // เคลียร์ช่องค้นหา
+        document.getElementById('result').innerHTML = '';  // เคลียร์ผลการค้นหา
       })
       .catch(error => {
         document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
