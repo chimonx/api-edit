@@ -54,14 +54,54 @@
         .then(response => response.json()) // แปลงข้อมูลจาก JSON
         .then(data => {
           console.log(data);  // แสดงข้อมูลที่ได้รับจาก API
-          Swal.fire("Data received", JSON.stringify(data), "info");
+          showResult(data);  // แสดงผลข้อมูล
         })
         .catch(error => Swal.fire('เกิดข้อผิดพลาด', error.message, 'error'));
       }
 
+      // ฟังก์ชันแสดงผลข้อมูล
+      function showResult(data) {
+        if (data) {
+          if (data.V === 'สั่งผลิตแล้ว' || data.V === 'รับเสื้อแล้ว') {
+            Swal.fire('แจ้งเตือน', 'ข้อมูลนี้ ' + data.V + ' ไม่สามารถแก้ไขได้', 'warning');
+            return;
+          }
+          document.getElementById('result').innerHTML = `
+            <div class="card card-custom mt-4">
+              <h5 class="text-center mb-3">ข้อมูลเสื้อ BU JERSEY</h5>
+              <div class="mb-2"><strong>ชื่อผู้สั่งซื้อ</strong> ${data.J}</div>
+              <div class="mb-2">
+                <strong>ตัวหนังสือหลังเสื้อ</strong>
+                <input type="text" id="editL" class="form-control" value="${data.L}" maxlength="8"
+                       pattern="[A-Za-z]{1,8}" title="กรอกเฉพาะตัวอักษร A-Z ไม่เกิน 8 ตัว" required>
+              </div>
+              <div class="mb-2">
+                <strong>สีเสื้อ</strong>
+                <select id="editD" class="form-control">
+                  <option ${data.D === 'สีฟ้า' ? 'selected' : ''}>สีฟ้า</option>
+                  <option ${data.D === 'สีแดง' ? 'selected' : ''}>สีแดง</option>
+                  <option ${data.D === 'สีกรม' ? 'selected' : ''}>สีกรม</option>
+                  <option ${data.D === 'สีดำ' ? 'selected' : ''}>สีดำ</option>
+                </select>
+              </div>
+              <div class="mb-2">
+                <strong>เบอร์เสื้อ</strong>
+                <input type="number" id="editE" class="form-control" min="1" max="99" value="${data.E}">
+              </div>
+              <div class="mb-3">
+                <strong>ไซต์เสื้อ</strong>
+                <input type="text" id="editF" class="form-control" value="${data.F}" disabled>
+              </div>
+              <button class="btn btn-primary btn-custom" onclick="updateData('${data.M}')">อัปเดต</button>
+            </div>`;
+        } else {
+          Swal.fire('ไม่พบข้อมูล', '', 'error');
+        }
+      }
+
       // ฟังก์ชันส่งข้อมูลแก้ไข (POST) โดยใช้ cors mode
       function updateData(M) {
-        let L = document.getElementById('editL').value.trim();
+        let L = document.getElementById('editL').value;
         let D = document.getElementById('editD').value;
         let E = document.getElementById('editE').value.padStart(2, '0');
 
