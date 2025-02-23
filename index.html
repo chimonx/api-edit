@@ -33,92 +33,122 @@
     </div>
     <div id="result"></div>
     <footer>
-      <p>หากพบปัญหาติดต่อไลน์ <a href="https://line.me/ti/p/~@125jhxql" target="_blank">@smo_bu</a></p>
+      <p>Developed by Technologies Team, Secretary Department<br>
+      V.3 Student Union of Bangkok University<br>
+      หากพบปัญหากรุณาติดต่อไลน์ <a href="https://line.me/ti/p/~@125jhxql" target="_blank">@smo_bu</a></p>
     </footer>
+  </div>
 
-    <script>
-      // ใส่ URL ของ Web App ที่ deploy แล้ว (ตรวจสอบว่าเปิดให้ "Anyone, even anonymous")
-      const API_URL = "https://proxy-uk1x.onrender.com";
+  <script>
+    const API_URL = "https://proxy-uk1x.onrender.com";
 
-      // ฟังก์ชันค้นหาข้อมูล (GET) โดยใช้ cors mode
-      function searchData() {
-        let inputValue = document.getElementById('inputM').value.trim();
-        if (!inputValue) {
-          Swal.fire('ข้อผิดพลาด', 'กรุณากรอกหมายเลขธุรกรรม', 'error');
+    // ฟังก์ชันค้นหาข้อมูล (GET) โดยใช้ cors mode
+    function searchData() {
+      let inputValue = document.getElementById('inputM').value.trim();
+      if (!inputValue) {
+        Swal.fire('ข้อผิดพลาด', 'กรุณากรอกหมายเลขธุรกรรม', 'error');
+        return;
+      }
+      
+      // แสดง loading ก่อนเริ่มค้นหา
+      Swal.fire({
+        title: 'กำลังค้นหาข้อมูล...',
+        text: 'กรุณารอสักครู่',
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      fetch(API_URL + "/proxy?m=" + encodeURIComponent(inputValue), {
+        method: "GET",
+        mode: 'cors'
+      })
+      .then(response => response.json())
+      .then(data => {
+        Swal.close();  // ปิด loading
+        showResult(data);
+      })
+      .catch(error => {
+        Swal.close();
+        Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+      });
+    }
+
+    // ฟังก์ชันแสดงผลข้อมูล
+    function showResult(data) {
+      if (data) {
+        if (data.V === 'สั่งผลิตแล้ว' || data.V === 'รับเสื้อแล้ว') {
+          Swal.fire('แจ้งเตือน', 'ข้อมูลนี้ ' + data.V + ' ไม่สามารถแก้ไขได้', 'warning');
           return;
         }
-        fetch(API_URL + "/proxy?m=" + encodeURIComponent(inputValue), {
-          method: "GET",
-          mode: 'cors' // ใช้ CORS ที่รองรับ
-        })
-        .then(response => response.json()) // แปลงข้อมูลจาก JSON
-        .then(data => {
-          console.log(data);  // แสดงข้อมูลที่ได้รับจาก API
-          showResult(data);  // แสดงผลข้อมูล
-        })
-        .catch(error => Swal.fire('เกิดข้อผิดพลาด', error.message, 'error'));
+        document.getElementById('result').innerHTML = `
+          <div class="card card-custom mt-4">
+            <h5 class="text-center mb-3">ข้อมูลเสื้อ BU JERSEY</h5>
+            <div class="mb-2"><strong>ชื่อผู้สั่งซื้อ</strong> ${data.J}</div>
+            <div class="mb-2">
+              <strong>ตัวหนังสือหลังเสื้อ</strong>
+              <input type="text" id="editL" class="form-control" value="${data.L}" maxlength="8"
+                     pattern="[A-Za-z]{1,8}" title="กรอกเฉพาะตัวอักษร A-Z ไม่เกิน 8 ตัว" required>
+            </div>
+            <div class="mb-2">
+              <strong>สีเสื้อ</strong>
+              <select id="editD" class="form-control">
+                <option ${data.D === 'สีฟ้า' ? 'selected' : ''}>สีฟ้า</option>
+                <option ${data.D === 'สีแดง' ? 'selected' : ''}>สีแดง</option>
+                <option ${data.D === 'สีกรม' ? 'selected' : ''}>สีกรม</option>
+                <option ${data.D === 'สีดำ' ? 'selected' : ''}>สีดำ</option>
+              </select>
+            </div>
+            <div class="mb-2">
+              <strong>เบอร์เสื้อ</strong>
+              <input type="number" id="editE" class="form-control" min="1" max="99" value="${data.E}">
+            </div>
+            <div class="mb-3">
+              <strong>ไซต์เสื้อ</strong>
+              <input type="text" id="editF" class="form-control" value="${data.F}" disabled>
+            </div>
+            <button class="btn btn-primary btn-custom" onclick="updateData('${data.M}')">อัปเดต</button>
+          </div>`;
+      } else {
+        Swal.fire('ไม่พบข้อมูล', '', 'error');
       }
+    }
 
-      // ฟังก์ชันแสดงผลข้อมูล
-      function showResult(data) {
-        if (data) {
-          if (data.V === 'สั่งผลิตแล้ว' || data.V === 'รับเสื้อแล้ว') {
-            Swal.fire('แจ้งเตือน', 'ข้อมูลนี้ ' + data.V + ' ไม่สามารถแก้ไขได้', 'warning');
-            return;
-          }
-          document.getElementById('result').innerHTML = `
-            <div class="card card-custom mt-4">
-              <h5 class="text-center mb-3">ข้อมูลเสื้อ BU JERSEY</h5>
-              <div class="mb-2"><strong>ชื่อผู้สั่งซื้อ</strong> ${data.J}</div>
-              <div class="mb-2">
-                <strong>ตัวหนังสือหลังเสื้อ</strong>
-                <input type="text" id="editL" class="form-control" value="${data.L}" maxlength="8"
-                       pattern="[A-Za-z]{1,8}" title="กรอกเฉพาะตัวอักษร A-Z ไม่เกิน 8 ตัว" required>
-              </div>
-              <div class="mb-2">
-                <strong>สีเสื้อ</strong>
-                <select id="editD" class="form-control">
-                  <option ${data.D === 'สีฟ้า' ? 'selected' : ''}>สีฟ้า</option>
-                  <option ${data.D === 'สีแดง' ? 'selected' : ''}>สีแดง</option>
-                  <option ${data.D === 'สีกรม' ? 'selected' : ''}>สีกรม</option>
-                  <option ${data.D === 'สีดำ' ? 'selected' : ''}>สีดำ</option>
-                </select>
-              </div>
-              <div class="mb-2">
-                <strong>เบอร์เสื้อ</strong>
-                <input type="number" id="editE" class="form-control" min="1" max="99" value="${data.E}">
-              </div>
-              <div class="mb-3">
-                <strong>ไซต์เสื้อ</strong>
-                <input type="text" id="editF" class="form-control" value="${data.F}" disabled>
-              </div>
-              <button class="btn btn-primary btn-custom" onclick="updateData('${data.M}')">อัปเดต</button>
-            </div>`;
-        } else {
-          Swal.fire('ไม่พบข้อมูล', '', 'error');
+    // ฟังก์ชันส่งข้อมูลแก้ไข (POST) โดยใช้ cors mode
+    function updateData(M) {
+      let L = document.getElementById('editL').value;
+      let D = document.getElementById('editD').value;
+      let E = document.getElementById('editE').value.padStart(2, '0');
+      
+      // แสดง loading ก่อนเริ่มอัปเดต
+      Swal.fire({
+        title: 'กำลังอัปเดตข้อมูล...',
+        text: 'กรุณารอสักครู่',
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
         }
-      }
+      });
 
-      // ฟังก์ชันส่งข้อมูลแก้ไข (POST) โดยใช้ cors mode
-      function updateData(M) {
-        let L = document.getElementById('editL').value;
-        let D = document.getElementById('editD').value;
-        let E = document.getElementById('editE').value.padStart(2, '0');
-
-        fetch(API_URL + "/proxy", {
-          method: "POST",
-          mode: 'cors', // ใช้ CORS ที่รองรับ
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ m: M, l: L, d: D, e: E })
-        })
-        .then(response => response.json()) // แปลงข้อมูลจาก JSON
-        .then(data => {
-          console.log(data);  // แสดงข้อมูลที่ได้รับจาก API
-          Swal.fire("Data updated", JSON.stringify(data), "info");
-        })
-        .catch(error => Swal.fire('เกิดข้อผิดพลาด', error.message, 'error'));
-      }
-    </script>
-  </div>
+      fetch(API_URL + "/proxy", {
+        method: "POST",
+        mode: 'cors',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ m: M, l: L, d: D, e: E })
+      })
+      .then(response => response.json())
+      .then(data => {
+        Swal.close();  // ปิด loading
+        Swal.fire("Data updated", JSON.stringify(data), "info");
+      })
+      .catch(error => {
+        Swal.close();
+        Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+      });
+    }
+  </script>
 </body>
 </html>
