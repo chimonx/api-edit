@@ -3,103 +3,96 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' https://jersey.smobu.cloud;">
   <title>ระบบแก้ไขข้อมูลเสื้อ BU JERSEY</title>
+
+  <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+  <!-- Animate.css -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <style>
-    body { font-family: Arial, sans-serif; background: #c2e9fb; }
+    body { font-family: 'Prompt', sans-serif; background: #c2e9fb; }
     .container { max-width: 480px; margin: 50px auto; padding: 20px; }
-    .card-custom { border-radius: 12px; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); background: rgba(255, 255, 255, 0.9); padding: 20px; }
-    .btn-custom { width: 100%; font-size: 18px; border-radius: 30px; padding: 10px; transition: transform 0.2s ease; }
+    .card-custom { border-radius: 12px; border: none; background: rgba(255, 255, 255, 0.9); padding: 20px; }
+    .btn-custom { width: 100%; font-size: 18px; border-radius: 30px; padding: 10px; transition: transform 0.2s ease, background-color 0.3s ease; }
     .btn-custom:hover { background-color: #0056b3; transform: scale(1.05); }
-    .form-control { border-radius: 8px; }
+    footer { background-color: #343a40; border-radius: 8px; padding: 15px; margin-top: 30px; text-align: center; color: #fff; }
+    footer a { color: #ffc107; text-decoration: none; }
   </style>
+
   <script>
-    const SHEET_ID = "1LxRoKO4udNM1OJlew99U2eloE8Gh6ZO7I_U-pk4mEuo";
-    const API_KEY = "AIzaSyBZe-lboL_XlqhZpLPRf73m8fikOekXLyo";  // ใส่ API Key ของคุณ
-    const SHEET_NAME = "BUY";
+    const API_URL = "https://script.google.com/macros/s/xxxxxxxxxx/exec"; // 🔹 ใส่ URL ของ Google Apps Script
 
-    // ค้นหาข้อมูลจาก Google Sheets
-    async function searchData() {
-        let inputM = document.getElementById('inputM').value.trim();
-        if (!inputM) return Swal.fire('กรุณากรอกรหัสธุรกรรม', '', 'warning');
+    function searchData() {
+      let inputValue = document.getElementById('inputM').value.trim();
+      if (!inputValue) {
+        Swal.fire('ข้อผิดพลาด', 'กรุณากรอกหมายเลขธุรกรรม', 'error');
+        return;
+      }
 
-        try {
-            let url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
-            let response = await fetch(url);
-            let data = await response.json();
-
-            if (!data.values) return Swal.fire('ไม่พบข้อมูล', '', 'error');
-
-            let headers = data.values[0];  // หัวข้อคอลัมน์
-            let rowIndex = data.values.findIndex(row => row[0] === inputM);
-
-            if (rowIndex === -1) {
-                return Swal.fire('ไม่พบข้อมูล', '', 'error');
-            }
-
-            let rowData = data.values[rowIndex];
-
-            document.getElementById('result').innerHTML = `
-                <div class="card card-custom mt-4">
-                  <h5 class="text-center mb-3">ข้อมูลเสื้อ BU JERSEY</h5>
-                  <div class="mb-2"><strong>J:</strong> ${rowData[1]}</div>
-                  <div class="mb-2">
-                    <strong>L:</strong>
-                    <input type="text" id="editL" class="form-control" value="${rowData[2]}" maxlength="8">
-                  </div>
-                  <div class="mb-2">
-                    <strong>D:</strong>
-                    <select id="editD" class="form-control">
-                      <option ${rowData[3] === 'สีฟ้า' ? 'selected' : ''}>สีฟ้า</option>
-                      <option ${rowData[3] === 'สีแดง' ? 'selected' : ''}>สีแดง</option>
-                      <option ${rowData[3] === 'สีกรม' ? 'selected' : ''}>สีกรม</option>
-                      <option ${rowData[3] === 'สีดำ' ? 'selected' : ''}>สีดำ</option>
-                    </select>
-                  </div>
-                  <div class="mb-2">
-                    <strong>E:</strong>
-                    <input type="number" id="editE" class="form-control" min="1" max="99" value="${rowData[4]}">
-                  </div>
-                  <button class="btn btn-primary btn-custom" onclick="updateData(${rowIndex})">อัปเดต</button>
-                </div>`;
-        } catch (error) {
-            Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
-        }
+      fetch(API_URL + "?m=" + encodeURIComponent(inputValue))
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.status === "success") {
+            showResult(data);
+          } else {
+            Swal.fire('ไม่พบข้อมูล', '', 'error');
+          }
+        })
+        .catch(error => Swal.fire('เกิดข้อผิดพลาด', error.message, 'error'));
     }
 
-    // อัปเดตข้อมูลใน Google Sheets
-    async function updateData(rowIndex) {
-        let D = document.getElementById('editD').value;
-        let E = document.getElementById('editE').value;
+    function showResult(data) {
+      if (data.V === 'สั่งผลิตแล้ว' || data.V === 'รับเสื้อแล้ว') {
+        Swal.fire('แจ้งเตือน', 'ข้อมูลนี้ ' + data.V + ' ไม่สามารถแก้ไขได้', 'warning');
+        return;
+      }
 
-        if (!D || !E || isNaN(E) || E < 1 || E > 99) {
-            return Swal.fire('กรุณากรอกข้อมูลให้ถูกต้อง', '', 'warning');
-        }
+      document.getElementById('result').innerHTML = `
+        <div class="card card-custom mt-4">
+          <h5 class="text-center mb-3">ข้อมูลเสื้อ BU JERSEY</h5>
+          <div class="mb-2"><strong>ชื่อผู้สั่งซื้อ</strong> ${data.J}</div>
+          <div class="mb-2">
+            <strong>ตัวหนังสือหลังเสื้อ</strong>
+            <input type="text" id="editL" class="form-control" value="${data.L}" maxlength="8" required>
+          </div>
+          <div class="mb-2">
+            <strong>สีเสื้อ</strong>
+            <select id="editD" class="form-control">
+              <option ${data.D === 'สีฟ้า' ? 'selected' : ''}>สีฟ้า</option>
+              <option ${data.D === 'สีแดง' ? 'selected' : ''}>สีแดง</option>
+              <option ${data.D === 'สีกรม' ? 'selected' : ''}>สีกรม</option>
+              <option ${data.D === 'สีดำ' ? 'selected' : ''}>สีดำ</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <strong>เบอร์เสื้อ</strong>
+            <input type="number" id="editE" class="form-control" min="1" max="99" value="${data.E}">
+          </div>
+          <button class="btn btn-primary btn-custom" onclick="updateData('${data.M}')">อัปเดต</button>
+        </div>`;
+    }
 
-        let payload = {
-            range: `${SHEET_NAME}!D${rowIndex + 1}:E${rowIndex + 1}`,
-            majorDimension: "ROWS",
-            values: [[D, E]]
-        };
+    function updateData(M) {
+      let L = document.getElementById('editL').value.trim();
+      let D = document.getElementById('editD').value;
+      let E = document.getElementById('editE').value.padStart(2, '0');
 
-        try {
-            let url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!D${rowIndex + 1}:E${rowIndex + 1}?valueInputOption=RAW&key=${API_KEY}`;
-            let response = await fetch(url, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-
-            let result = await response.json();
-            if (result.updatedCells) {
-                Swal.fire('อัปเดตสำเร็จ', '', 'success');
-            } else {
-                Swal.fire('เกิดข้อผิดพลาด', '', 'warning');
-            }
-        } catch (error) {
-            Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
-        }
+      fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ m: M, l: L, d: D, e: E })
+      })
+      .then(response => response.json())
+      .then(data => {
+        Swal.fire(data.message, '', data.status === "success" ? 'success' : 'warning');
+      })
+      .catch(error => Swal.fire('เกิดข้อผิดพลาด', error.message, 'error'));
     }
   </script>
 </head>
@@ -110,11 +103,14 @@
     </div>
     <div class="card card-custom">
       <div class="mb-3">
-        <input type="text" id="inputM" class="form-control" placeholder="รหัสธุรกรรม/เลขรายการบนสลิปโอนเงิน">
+        <input type="text" id="inputM" class="form-control" placeholder="หมายเลขธุรกรรม/เลขรายการบนสลิป">
       </div>
       <button class="btn btn-success btn-custom" onclick="searchData()">ค้นหา</button>
     </div>
     <div id="result"></div>
+    <footer>
+      <p>หากพบปัญหาติดต่อไลน์ <a href="https://line.me/ti/p/~@125jhxql" target="_blank">@smo_bu</a></p>
+    </footer>
   </div>
 </body>
 </html>
