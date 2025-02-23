@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' https://jersey.smobu.cloud;">
   <title>ระบบแก้ไขข้อมูลเสื้อ BU JERSEY</title>
   
   <!-- Favicon -->
@@ -67,9 +66,21 @@
       color: #ffc107;
       text-decoration: none;
     }
+    /* Loading Spinner */
+    .loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      display: none;
+    }
   </style>
 
   <script>
+    // กำหนด API URL เพียงครั้งเดียว
+    const apiUrl = "https://sheet-api.smobu.cloud/proxy";
+
     // ฟังก์ชันค้นหาข้อมูล (GET)
     function searchData() {
       var inputValue = document.getElementById('inputM').value.trim();
@@ -79,14 +90,23 @@
         return;
       }
 
+      // แสดง Loading
+      document.getElementById('loading').style.display = 'block';
+
       // เรียก API ผ่าน Proxy
-      fetch("https://sheet-api.smobu.cloud/proxy?m=" + encodeURIComponent(inputValue), {
+      fetch(`${apiUrl}?m=${encodeURIComponent(inputValue)}`, {
         method: "GET",
         mode: 'cors', // ใช้ CORS ที่รองรับ
       })
       .then(response => response.json())  // แปลงข้อมูลจาก JSON
-      .then(data => showResult(data))
-      .catch(error => Swal.fire('เกิดข้อผิดพลาด', error.message, 'error'));
+      .then(data => {
+        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
+        showResult(data);
+      })
+      .catch(error => {
+        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
+        Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+      });
     }
 
     // แสดงผลข้อมูลที่ค้นหา
@@ -139,15 +159,24 @@
       var D = document.getElementById('editD').value;
       var E = document.getElementById('editE').value.padStart(2, '0');
 
-      fetch("https://sheet-api.smobu.cloud/proxy", {
+      // แสดง Loading
+      document.getElementById('loading').style.display = 'block';
+
+      fetch(apiUrl, {
         method: "POST",
         mode: 'cors', // ใช้ CORS ที่รองรับ
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ m: M, l: L, d: D, e: E })
       })
       .then(response => response.json())
-      .then(data => Swal.fire('อัปเดตข้อมูลสำเร็จ', '', 'success'))
-      .catch(error => Swal.fire('เกิดข้อผิดพลาด', error.message, 'error'));
+      .then(data => {
+        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
+        Swal.fire('อัปเดตข้อมูลสำเร็จ', '', 'success');
+      })
+      .catch(error => {
+        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
+        Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+      });
     }
   </script>
 </head>
@@ -163,6 +192,14 @@
       <button class="btn btn-success btn-custom" onclick="searchData()">ค้นหา</button>
     </div>
     <div id="result"></div>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="loading">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
     <footer>
       <p>
         Developed by Technologies Team, Secretary Department<br>
