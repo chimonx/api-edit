@@ -40,40 +40,41 @@
       // ใส่ URL ของ Web App ที่ deploy แล้ว (ตรวจสอบว่าเปิดให้ "Anyone, even anonymous")
       const API_URL = "https://proxy-uk1x.onrender.com";
 
-      // ฟังก์ชันค้นหาข้อมูล (GET) โดยใช้ no-cors mode
+      // ฟังก์ชันค้นหาข้อมูล (GET) โดยใช้ cors mode
       function searchData() {
         let inputValue = document.getElementById('inputM').value.trim();
         if (!inputValue) {
           Swal.fire('ข้อผิดพลาด', 'กรุณากรอกหมายเลขธุรกรรม', 'error');
           return;
         }
-        fetch(API_URL + "?m=" + encodeURIComponent(inputValue), {
+        fetch(API_URL + "/proxy?m=" + encodeURIComponent(inputValue), {
           method: "GET",
-          mode: 'no-cors' // ไม่ให้เบราว์เซอร์ตรวจสอบ CORS
+          mode: 'cors' // ใช้ CORS ที่รองรับ
         })
-        .then(response => {
-          // response จะเป็น opaque response ไม่สามารถอ่าน JSON ได้
-          console.log("Opaque response (GET):", response);
-          Swal.fire("Request Sent", "GET Request sent in no-cors mode.\n(response not available)", "info");
+        .then(response => response.json()) // แปลงข้อมูลจาก JSON
+        .then(data => {
+          console.log(data);  // แสดงข้อมูลที่ได้รับจาก API
+          Swal.fire("Data received", JSON.stringify(data), "info");
         })
         .catch(error => Swal.fire('เกิดข้อผิดพลาด', error.message, 'error'));
       }
 
-      // ฟังก์ชันส่งข้อมูลแก้ไข (POST) โดยใช้ no-cors mode
+      // ฟังก์ชันส่งข้อมูลแก้ไข (POST) โดยใช้ cors mode
       function updateData(M) {
         let L = document.getElementById('editL').value.trim();
         let D = document.getElementById('editD').value;
         let E = document.getElementById('editE').value.padStart(2, '0');
 
-        fetch(API_URL, {
+        fetch(API_URL + "/proxy", {
           method: "POST",
-          mode: 'no-cors', // ไม่ให้เบราว์เซอร์ตรวจสอบ CORS
+          mode: 'cors', // ใช้ CORS ที่รองรับ
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ m: M, l: L, d: D, e: E })
         })
-        .then(response => {
-          console.log("Opaque response (POST):", response);
-          Swal.fire("Request Sent", "POST Request sent in no-cors mode.\n(response not available)", "info");
+        .then(response => response.json()) // แปลงข้อมูลจาก JSON
+        .then(data => {
+          console.log(data);  // แสดงข้อมูลที่ได้รับจาก API
+          Swal.fire("Data updated", JSON.stringify(data), "info");
         })
         .catch(error => Swal.fire('เกิดข้อผิดพลาด', error.message, 'error'));
       }
