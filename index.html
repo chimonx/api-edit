@@ -117,10 +117,11 @@
         return;
       }
 
-      if (data.V === 'สั่งผลิตแล้ว' || data.V === 'รับเสื้อแล้ว') {
+      if (data.V === 'สั่งผลิตแล้ว' || data.V === 'รับเสื้อแล้ว' || data.V === 'พร้อมรับ') {
         Swal.fire('แจ้งเตือน', 'หมายเลขธุรกรรมนี้ ' + data.V + ' ไม่สามารถแก้ไขได้', 'warning');
         return;
       }
+
 
       // แสดงข้อมูล
       document.getElementById('result').innerHTML = `
