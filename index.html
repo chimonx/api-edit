@@ -66,7 +66,6 @@
       color: #ffc107;
       text-decoration: none;
     }
-    /* Loading Spinner */
     .loading {
       position: fixed;
       top: 50%;
@@ -78,10 +77,8 @@
   </style>
 
   <script>
-    // กำหนด API URL เพียงครั้งเดียว
     const apiUrl = "https://sheet-api.smobu.cloud/proxy";
 
-    // ฟังก์ชันค้นหาข้อมูล (GET)
     function searchData() {
       var inputValue = document.getElementById('inputM').value.trim();
 
@@ -90,29 +87,25 @@
         return;
       }
 
-      // แสดง Loading
       document.getElementById('loading').style.display = 'block';
 
-      // เรียก API ผ่าน Proxy
       fetch(`${apiUrl}?m=${encodeURIComponent(inputValue)}`, {
         method: "GET",
-        mode: 'cors', // ใช้ CORS ที่รองรับ
+        mode: 'cors',
       })
-      .then(response => response.json())  // แปลงข้อมูลจาก JSON
+      .then(response => response.json())
       .then(data => {
-        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
+        document.getElementById('loading').style.display = 'none';
         showResult(data);
       })
       .catch(error => {
-        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
+        document.getElementById('loading').style.display = 'none';
         Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
       });
     }
 
-    // แสดงผลข้อมูลที่ค้นหา
     function showResult(data) {
       if (!data || !data.J) {
-        // ถ้าไม่พบข้อมูลหรือค่า `J` ไม่มี (หมายถึงไม่พบข้อมูลที่ต้องการ)
         Swal.fire('ไม่พบข้อมูล', '', 'error');
         return;
       }
@@ -122,8 +115,6 @@
         return;
       }
 
-
-      // แสดงข้อมูล
       document.getElementById('result').innerHTML = `
         <div class="card card-custom mt-4">
           <h5 class="text-center mb-3">ข้อมูลเสื้อ BU JERSEY</h5>
@@ -144,7 +135,8 @@
           </div>
           <div class="mb-2">
             <strong>เบอร์เสื้อ</strong>
-            <input type="number" id="editE" class="form-control" min="1" max="99" value="${data.E}">
+            <input type="text" id="editE" class="form-control" pattern="\\d{2}" maxlength="2"
+                   inputmode="numeric" required oninput="formatNumber(this)" value="${data.E}">
           </div>
           <div class="mb-3">
             <strong>ไซต์เสื้อ</strong>
@@ -154,34 +146,41 @@
         </div>`;
     }
 
-    // ฟังก์ชันอัปเดตข้อมูล (POST)
     function updateData(M) {
       var L = document.getElementById('editL').value;
       var D = document.getElementById('editD').value;
-      var E = document.getElementById('editE').value.padStart(2, '0');
+      var E = document.getElementById('editE').value;
 
-      // แสดง Loading
       document.getElementById('loading').style.display = 'block';
 
       fetch(apiUrl, {
         method: "POST",
-        mode: 'cors', // ใช้ CORS ที่รองรับ
+        mode: 'cors',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ m: M, l: L, d: D, e: E })
       })
       .then(response => response.json())
       .then(data => {
-        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
+        document.getElementById('loading').style.display = 'none';
         Swal.fire('อัปเดตข้อมูลสำเร็จ', '', 'success');
-
-        // รีเซ็ตข้อมูล
-        document.getElementById('inputM').value = '';  // เคลียร์ช่องค้นหา
-        document.getElementById('result').innerHTML = '';  // เคลียร์ผลการค้นหา
+        document.getElementById('inputM').value = '';
+        document.getElementById('result').innerHTML = '';
       })
       .catch(error => {
-        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
+        document.getElementById('loading').style.display = 'none';
         Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
       });
+    }
+
+    function formatNumber(input) {
+      let value = input.value.replace(/\D/g, '');
+      if (value.length === 1) {
+        value = '0' + value;
+      }
+      if (parseInt(value) > 99) {
+        value = '99';
+      }
+      input.value = value;
     }
   </script>
 </head>
@@ -190,28 +189,7 @@
     <div class="text-center mb-4">
       <h2 class="animate__animated animate__fadeInDown">ระบบแก้ไขข้อมูลเสื้อ BU JERSEY</h2>
     </div>
-    <div class="card card-custom animate__animated animate__zoomIn">
-      <div class="mb-3">
-        <input type="text" id="inputM" class="form-control" placeholder="หมายเลขธุรกรรม/เลขรายการบนสลิปโอนเงิน">
-      </div>
-      <button class="btn btn-success btn-custom" onclick="searchData()">ค้นหา</button>
-    </div>
     <div id="result"></div>
-
-    <!-- Loading Spinner -->
-    <div id="loading" class="loading">
-      <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
-    </div>
-
-    <footer>
-      <p>
-        Dev. Technologies Team<br>
-        V.3 Student Union of Bangkok University<br>
-        หากพบปัญหากรุณาติดต่อไลน์ <a href="https://line.me/ti/p/~@125jhxql" target="_blank">@smo_bu</a>
-      </p>
-    </footer>
   </div>
 </body>
 </html>
