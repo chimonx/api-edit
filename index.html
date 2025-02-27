@@ -78,8 +78,10 @@
   </style>
 
   <script>
+    // API URL
     const apiUrl = "https://sheet-api.smobu.cloud/proxy";
 
+    // GET
     function searchData() {
       var inputValue = document.getElementById('inputM').value.trim();
 
@@ -88,34 +90,38 @@
         return;
       }
 
+      // Loading
       document.getElementById('loading').style.display = 'block';
 
+      // FETCH API Proxy
       fetch(`${apiUrl}?m=${encodeURIComponent(inputValue)}`, {
         method: "GET",
-        mode: 'cors',
+        mode: 'cors', // ใช้ CORS ที่รองรับ
       })
-      .then(response => response.json())
+      .then(response => response.json())  // แปลงข้อมูลจาก JSON
       .then(data => {
-        document.getElementById('loading').style.display = 'none';
+        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
         showResult(data);
       })
       .catch(error => {
-        document.getElementById('loading').style.display = 'none';
+        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
         Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
       });
     }
 
     function showResult(data) {
       if (!data || !data.J) {
+        // ถ้าไม่พบข้อมูลหรือค่า `J` ไม่มี (หมายถึงไม่พบข้อมูลที่ต้องการ)
         Swal.fire('ไม่พบข้อมูล', '', 'error');
         return;
       }
 
-      if (data.V === 'สั่งผลิตแล้ว' || data.V === 'รับเสื้อแล้ว' || data.V === 'พร้อมรับ') {
+      if (data.V === 'สั่งผลิตแล้ว' || data.V === 'รับเสื้อแล้ว') {
         Swal.fire('แจ้งเตือน', 'หมายเลขธุรกรรมนี้ ' + data.V + ' ไม่สามารถแก้ไขได้', 'warning');
         return;
       }
 
+      // แสดงข้อมูล
       document.getElementById('result').innerHTML = `
         <div class="card card-custom mt-4">
           <h5 class="text-center mb-3">ข้อมูลเสื้อ BU JERSEY</h5>
@@ -136,8 +142,7 @@
           </div>
           <div class="mb-2">
             <strong>เบอร์เสื้อ</strong>
-            <input type="number" id="editE" class="form-control" min="1" max="99" 
-                   oninput="formatTwoDigits(this)" required>
+            <input type="number" id="editE" class="form-control" min="1" max="99" value="${data.E}">
           </div>
           <div class="mb-3">
             <strong>ไซต์เสื้อ</strong>
@@ -147,37 +152,34 @@
         </div>`;
     }
 
+    // POST
     function updateData(M) {
       var L = document.getElementById('editL').value;
       var D = document.getElementById('editD').value;
       var E = document.getElementById('editE').value.padStart(2, '0');
 
+      // แสดง Loading
       document.getElementById('loading').style.display = 'block';
 
       fetch(apiUrl, {
         method: "POST",
-        mode: 'cors',
+        mode: 'cors', // ใช้ CORS ที่รองรับ
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ m: M, l: L, d: D, e: E })
       })
       .then(response => response.json())
       .then(data => {
-        document.getElementById('loading').style.display = 'none';
+        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
         Swal.fire('อัปเดตข้อมูลสำเร็จ', '', 'success');
-        document.getElementById('inputM').value = '';
-        document.getElementById('result').innerHTML = '';
+
+        // รีเซ็ตข้อมูล
+        document.getElementById('inputM').value = '';  // เคลียร์ช่องค้นหา
+        document.getElementById('result').innerHTML = '';  // เคลียร์ผลการค้นหา
       })
       .catch(error => {
-        document.getElementById('loading').style.display = 'none';
+        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
         Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
       });
-    }
-
-    function formatTwoDigits(input) {
-      let value = input.value;
-      if (value.length === 1) {
-        input.value = value.padStart(2, '0');
-      }
     }
   </script>
 </head>
@@ -193,8 +195,20 @@
       <button class="btn btn-success btn-custom" onclick="searchData()">ค้นหา</button>
     </div>
     <div id="result"></div>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="loading">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
     <footer>
-      <p>หากพบปัญหากรุณาติดต่อไลน์ <a href="https://line.me/ti/p/~@125jhxql" target="_blank">@smo_bu</a></p>
+      <p>
+        Dev. by Technologies Team<br>
+        V.3 Student Union of Bangkok University<br>
+        หากพบปัญหากรุณาติดต่อไลน์ <a href="https://line.me/ti/p/~@125jhxql" target="_blank">@smo_bu</a>
+      </p>
     </footer>
   </div>
 </body>
