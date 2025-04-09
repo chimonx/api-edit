@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BU JERSEY</title>
-  
+
   <!-- Favicon -->
   <link rel="icon" href="https://www.bu.ac.th/dist/images/favicon.ico">
 
@@ -66,7 +66,6 @@
       color: #ffc107;
       text-decoration: none;
     }
-    /* Loading Spinner */
     .loading {
       position: fixed;
       top: 50%;
@@ -78,10 +77,8 @@
   </style>
 
   <script>
-    // API URL
     const apiUrl = "https://sheet-api.smobu.cloud/proxy";
 
-    // GET
     function searchData() {
       var inputValue = document.getElementById('inputM').value.trim();
 
@@ -90,38 +87,35 @@
         return;
       }
 
-      // Loading
       document.getElementById('loading').style.display = 'block';
 
-      // FETCH API Proxy
       fetch(`${apiUrl}?m=${encodeURIComponent(inputValue)}`, {
         method: "GET",
-        mode: 'cors', // ใช้ CORS ที่รองรับ
+        mode: 'cors',
       })
-      .then(response => response.json())  // แปลงข้อมูลจาก JSON
+      .then(response => response.json())
       .then(data => {
-        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
+        document.getElementById('loading').style.display = 'none';
         showResult(data);
       })
       .catch(error => {
-        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
+        document.getElementById('loading').style.display = 'none';
         Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
       });
     }
 
     function showResult(data) {
       if (!data || !data.J) {
-        // ถ้าไม่พบข้อมูลหรือค่า `J` ไม่มี (หมายถึงไม่พบข้อมูลที่ต้องการ)
         Swal.fire('ไม่พบข้อมูล', '', 'error');
         return;
       }
 
-      if (data.V === 'สั่งผลิตแล้ว' || data.V === 'รับเสื้อแล้ว') {
-        Swal.fire('แจ้งเตือน', 'หมายเลขธุรกรรมนี้ ' + data.V + ' ไม่สามารถแก้ไขได้', 'warning');
+      const lockedStatuses = ['สั่งผลิตแล้ว', 'รับเสื้อแล้ว', 'พร้อมรับ', 'กำลังผลิต'];
+      if (lockedStatuses.includes(data.V)) {
+        Swal.fire('แจ้งเตือน', `หมายเลขธุรกรรมนี้อยู่ในสถานะ "${data.V}" ไม่สามารถแก้ไขได้`, 'warning');
         return;
       }
 
-      // แสดงข้อมูล
       document.getElementById('result').innerHTML = `
         <div class="card card-custom mt-4">
           <h5 class="text-center mb-3">ข้อมูลเสื้อ BU JERSEY</h5>
@@ -152,32 +146,29 @@
         </div>`;
     }
 
-    // POST
     function updateData(M) {
       var L = document.getElementById('editL').value;
       var D = document.getElementById('editD').value;
       var E = document.getElementById('editE').value.padStart(2, '0');
 
-      // แสดง Loading
       document.getElementById('loading').style.display = 'block';
 
       fetch(apiUrl, {
         method: "POST",
-        mode: 'cors', // ใช้ CORS ที่รองรับ
+        mode: 'cors',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ m: M, l: L, d: D, e: E })
       })
       .then(response => response.json())
       .then(data => {
-        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
+        document.getElementById('loading').style.display = 'none';
         Swal.fire('อัปเดตข้อมูลสำเร็จ', '', 'success');
 
-        // รีเซ็ตข้อมูล
-        document.getElementById('inputM').value = '';  // เคลียร์ช่องค้นหา
-        document.getElementById('result').innerHTML = '';  // เคลียร์ผลการค้นหา
+        document.getElementById('inputM').value = '';
+        document.getElementById('result').innerHTML = '';
       })
       .catch(error => {
-        document.getElementById('loading').style.display = 'none'; // ซ่อน Loading
+        document.getElementById('loading').style.display = 'none';
         Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
       });
     }
@@ -196,7 +187,6 @@
     </div>
     <div id="result"></div>
 
-    <!-- Loading Spinner -->
     <div id="loading" class="loading">
       <div class="spinner-border text-primary" role="status">
         <span class="visually-hidden">Loading...</span>
